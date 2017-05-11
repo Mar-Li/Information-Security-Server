@@ -41,27 +41,4 @@ public class EncryptionUtils {
         return result;
     }
 
-//    // only for test purpose
-//    public static byte[] encryptWithSingleBlockRSA(String text, Key key) {
-//        try {
-//            Cipher cipher = Cipher.getInstance("RSA");
-//            cipher.init(Cipher.ENCRYPT_MODE, key);
-//            return cipher.doFinal(text.getBytes());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
-//
-//    // only for test purpose
-//    public static String decryptWithSingleBlockRSA(byte[] text, Key key) {
-//        try {
-//            Cipher cipher = Cipher.getInstance("RSA");
-//            cipher.init(Cipher.DECRYPT_MODE, key);
-//            return new String(cipher.doFinal(text));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
 }
