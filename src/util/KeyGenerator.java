@@ -19,7 +19,7 @@ import java.util.Arrays;
  */
 public class KeyGenerator {
 
-    public static void generateRSAKey(String privateKeyPath, String publicKeyPath) throws NoSuchAlgorithmException, IOException {
+    public static KeyPair generateRSAKey(String privateKeyPath, String publicKeyPath) throws NoSuchAlgorithmException, IOException {
         final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(2048);
         final KeyPair key = keyGen.generateKeyPair();
@@ -37,6 +37,7 @@ public class KeyGenerator {
         fos = new FileOutputStream(privateKeyPath);
         fos.write(pkcs8EncodedKeySpec.getEncoded());
         fos.close();
+        return key;
     }
 
     public static PublicKey loadPublicKey(String publicKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
