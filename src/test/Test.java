@@ -1,3 +1,7 @@
+package test;
+
+import data.UserData;
+import util.CommonUtils;
 import util.EncryptionUtils;
 import util.KeyGenerator;
 import util.message.MessageHeader;
@@ -18,11 +22,18 @@ import static java.nio.charset.StandardCharsets.ISO_8859_1;
 /**
  * Created by lifengshuang on 10/05/2017.
  */
+
 public class Test {
     public static void main(String[] args) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException {
         testMessageWrapper();
 //        System.out.println(testMD5().length);
 //        testByteStringConversion();
+//        testUserData();
+    }
+
+    private static void testUserData() throws IOException, NoSuchAlgorithmException {
+        UserData.registerUser("a");
+        UserData.registerUser("b");
     }
 
     private static byte[] testMD5() throws NoSuchAlgorithmException, BadPaddingException, InvalidKeySpecException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, IOException, SignatureException {
@@ -33,14 +44,14 @@ public class Test {
     private static byte[] testMessageWrapper() throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, InvalidKeySpecException, SignatureException {
 
         // RSA Key generation
-        KeyGenerator.generateRSAKey("test.pri", "test.pub");
+        KeyGenerator.generateRSAKey("key/test/test.pri", "key/test/test.pub");
 
         // load keys
-        PrivateKey privateKey = KeyGenerator.loadPrivateKey("test.pri");
-        PublicKey publicKey = KeyGenerator.loadPublicKey("test.pub");
+        PrivateKey privateKey = KeyGenerator.loadPrivateKey("key/test/test.pri");
+        PublicKey publicKey = KeyGenerator.loadPublicKey("key/test/test.pub");
 
         // Test data
-        String testText = "abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh";
+        String testText = CommonUtils.objectToString(publicKey);
         byte[] messageBody = EncryptionUtils.encryptWithRSA(testText, privateKey);
 
         // Message Header.

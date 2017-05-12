@@ -22,7 +22,7 @@ public class EncryptionUtils {
         byte[] result = new byte[BYTE_BLOCK_SIZE * blocks];
         for (int i = 0; i < blocks; i++) {
             String textBlock = text.substring(i * STRING_BLOCK_SIZE, Math.min((i + 1) * STRING_BLOCK_SIZE, text.length()));
-            byte[] dataBlock = cipher.doFinal(textBlock.getBytes());
+            byte[] dataBlock = cipher.doFinal(CommonUtils.stringToByteArray(textBlock));
             System.arraycopy(dataBlock, 0, result, i * BYTE_BLOCK_SIZE, BYTE_BLOCK_SIZE);
         }
         return result;
@@ -35,7 +35,7 @@ public class EncryptionUtils {
         String result = "";
         for (int i = 0; i < blocks; i++) {
             byte[] dataBlock = Arrays.copyOfRange(data, i * BYTE_BLOCK_SIZE, (i + 1) * BYTE_BLOCK_SIZE);
-            String textBlock = new String(cipher.doFinal(dataBlock));
+            String textBlock = CommonUtils.byteArrayToString(cipher.doFinal(dataBlock));
             result += textBlock;
         }
         return result;

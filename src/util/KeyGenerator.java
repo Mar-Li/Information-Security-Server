@@ -42,8 +42,8 @@ public class KeyGenerator {
         return kf.generatePublic(spec);
     }
 
-    public static PrivateKey loadPrivateKey(String publicKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] keyBytes = Files.readAllBytes(new File(publicKeyPath).toPath());
+    public static PrivateKey loadPrivateKey(String privateKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] keyBytes = Files.readAllBytes(new File(privateKeyPath).toPath());
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
         return kf.generatePrivate(spec);

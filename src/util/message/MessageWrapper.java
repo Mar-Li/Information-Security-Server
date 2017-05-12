@@ -1,5 +1,6 @@
 package util.message;
 
+import util.CommonUtils;
 import util.EncryptionUtils;
 
 import javax.crypto.BadPaddingException;
@@ -29,7 +30,7 @@ public class MessageWrapper {
         System.arraycopy(encryptedHeader, 0, dataWithoutSignature, lengthBlock.length, encryptedHeader.length);
         System.arraycopy(body, 0, dataWithoutSignature, lengthBlock.length + encryptedHeader.length, body.length);
         byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
-        byte[] signature = EncryptionUtils.encryptWithRSA(new String(hash, StandardCharsets.ISO_8859_1), privateKey);
+        byte[] signature = EncryptionUtils.encryptWithRSA(CommonUtils.byteArrayToString(hash), privateKey);
         wrappedData = new byte[dataWithoutSignature.length + EncryptionUtils.BYTE_BLOCK_SIZE];
         System.arraycopy(dataWithoutSignature, 0, wrappedData, 0, dataWithoutSignature.length);
         System.arraycopy(signature, 0, wrappedData, dataWithoutSignature.length, EncryptionUtils.BYTE_BLOCK_SIZE);
@@ -38,11 +39,14 @@ public class MessageWrapper {
     public MessageWrapper(byte[] wrappedData, PublicKey publicKey, Key privateKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException {
         this.wrappedData = wrappedData;
         byte[] dataWithoutSignature = Arrays.copyOfRange(wrappedData, 0, wrappedData.length - EncryptionUtils.BYTE_BLOCK_SIZE);
-        byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
-        byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
-        byte[] hashFromSignature = EncryptionUtils.decryptWithRSA(signatureBlock, publicKey).getBytes(StandardCharsets.ISO_8859_1);
-        if (!Arrays.equals(hash, hashFromSignature)) {
-            throw new SignatureException();
+        // publicKey == null means don't check the signature
+        if (publicKey != null) {
+            byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
+            byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+            byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, publicKey));
+            if (!Arrays.equals(hash, hashFromSignature)) {
+                throw new SignatureException();
+            }
         }
         byte[] lengthBlock = Arrays.copyOfRange(dataWithoutSignature, 0, EncryptionUtils.BYTE_BLOCK_SIZE);
         int headerLength = Integer.parseInt(EncryptionUtils.decryptWithRSA(lengthBlock, privateKey));
