@@ -27,6 +27,10 @@ public class UserData {
         return userData.get(username);
     }
 
+    public static User[] getAllUsers() {
+        return userData.values().toArray(new User[userData.values().size()]);
+    }
+
     public static void setPublicKey(String username, PublicKey publicKey) throws UnknownUserException {
         User user = userData.get(username);
         if (user == null) {
@@ -36,12 +40,20 @@ public class UserData {
         }
     }
 
-    public static void setIPAndPort(String username, InetAddress IP, Integer port) throws UnknownUserException {
+    public static void setIP(String username, InetAddress IP) throws UnknownUserException {
         User user = userData.get(username);
         if (user == null) {
             throw new UnknownUserException(username);
         } else {
             user.setIP(IP);
+        }
+    }
+
+    public static void setPort(String username, Integer port) throws UnknownUserException {
+        User user = userData.get(username);
+        if (user == null) {
+            throw new UnknownUserException(username);
+        } else {
             user.setPort(port);
         }
     }

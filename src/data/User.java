@@ -5,6 +5,10 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.security.PublicKey;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by lifengshuang on 13/05/2017.
@@ -14,6 +18,7 @@ public class User implements Serializable {
     private PublicKey publicKey;
     private InetAddress IP;
     private Integer port;
+//    private Map<String, Boolean> friends = new HashMap<>();
 
     public User(String username) {
         this.username = username;
@@ -47,6 +52,19 @@ public class User implements Serializable {
         this.port = port;
     }
 
+//    public void addFriend(String username, boolean accepted) {
+//        friends.put(username, accepted);
+//    }
+//
+//    public Map<String, Boolean> getFriends() {
+//        return this.friends;
+//    }
+
+    @Override
+    public String toString() {
+        return "Username: " + username + ", IP:" + IP.getHostAddress() + ", port: " + port;
+    }
+
     private void writeObject(java.io.ObjectOutputStream out)
             throws IOException {
         out.writeObject(username);
@@ -67,4 +85,23 @@ public class User implements Serializable {
             throws ObjectStreamException {
 
     }
+
+//    private class Friend {
+//        private String username;
+//        private boolean accepted;
+//
+//        public Friend(String username, boolean accepted) {
+//            this.username = username;
+//            this.accepted = accepted;
+//        }
+//
+//        public String getUsername() {
+//            return username;
+//        }
+//
+//        public boolean isAccepted() {
+//            return accepted;
+//        }
+//    }
+
 }
