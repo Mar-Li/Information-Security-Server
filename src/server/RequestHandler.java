@@ -5,6 +5,7 @@ import data.UserData;
 import exception.ServiceNotFoundException;
 import exception.UnknownUserException;
 import service.RegisterService;
+import service.UserService;
 import util.message.MessageHeader;
 import util.message.MessageWrapper;
 
@@ -26,6 +27,23 @@ public class RequestHandler implements Runnable {
         this.socket = socket;
     }
 
+    private byte[] handleRequest(MessageWrapper request, String service) throws Exception {
+        byte[] response = null;
+        switch (service) {
+            // Register a new user
+            case "register":
+                response = new RegisterService().handle(request);
+                break;
+            // Get all users' information
+            // There's only a few(two) users in this project, so server don't support querying one user.
+            case "getAllUsers":
+                response = new UserService().handle(request);
+            default:
+                break;
+        }
+        return response;
+    }
+
     @Override
     public void run() {
         try {
@@ -36,30 +54,22 @@ public class RequestHandler implements Runnable {
 
             System.out.println("===== New Request =====");
             String username = request.getHeader().get("Username");
-            if (UserData.getUser(username) == null) {
-                UserData.addUser(username);
-            }
             this.user = UserData.getUser(username);
             System.out.println("From user: " + username);
             System.out.println("Address: " + socket.getInetAddress() + " " + socket.getPort());
-            UserData.setIPAndPort(username, socket.getInetAddress(), socket.getPort());
             String service = request.getHeader().get("Service");
             if (service == null) {
                 throw new ServiceNotFoundException();
             }
             System.out.println("Service: " + service);
 
-            byte[] result = null;
-            switch (service) {
-                case "register":
-                    result = new RegisterService().handle(request);
-                    break;
-                default:
-                    break;
-            }
-            if (result != null) {
+            byte[] response = handleRequest(request, service);
+
+            UserData.setIPAndPort(username, socket.getInetAddress(), socket.getPort());
+
+            if (response != null) {
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-                outputStream.writeObject(result);
+                outputStream.writeObject(response);
                 socket.close();
             } else {
                 throw new ServiceNotFoundException();

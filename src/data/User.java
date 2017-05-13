@@ -47,6 +47,11 @@ public class User implements Serializable {
         this.port = port;
     }
 
+    @Override
+    public String toString() {
+        return "Username: " + username + ", IP:" + IP.getHostAddress() + ", port: " + port;
+    }
+
     private void writeObject(java.io.ObjectOutputStream out)
             throws IOException {
         out.writeObject(username);

@@ -50,6 +50,7 @@ public class Test {
         // Test data
         String testText = CommonUtils.objectToString(publicKey);
         byte[] messageBody = EncryptionUtils.encryptWithRSA(testText, privateKey);
+//        byte[] messageBody = new byte[0];
 
         // Message Header.
         // Header with a very long message is also tested.

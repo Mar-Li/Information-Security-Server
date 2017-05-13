@@ -57,8 +57,8 @@ public class MessageWrapper {
         // For server
         if (publicKey == null) {
             String username = this.header.get("Username");
-            if (username == null && !this.header.get("Service").equals("register")) {
-                throw new UnknownUserException(username);
+            if (username == null) {
+                throw new UnknownUserException(null);
             } else {
                 PublicKey key = UserData.getPublicKey(username);
                 if (key != null) {

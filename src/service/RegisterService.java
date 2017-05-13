@@ -42,6 +42,7 @@ public class RegisterService implements Service {
 
         String username = request.getHeader().get("Username");
         KeyPair keyPair = KeyGenerator.generateRSAKey("key/user/" + username + ".pri", "key/user/" + username + ".pub");
+        UserData.addUser(username);
         UserData.setPublicKey(username, keyPair.getPublic());
         String requestBody = EncryptionUtils.decryptWithRSA(request.getBody(), Server.SERVER_PRIVATE_KEY);
         PublicKey publicKey = (PublicKey)CommonUtils.byteArrayToObject(CommonUtils.stringToByteArray(requestBody));

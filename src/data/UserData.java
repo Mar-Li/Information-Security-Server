@@ -27,6 +27,10 @@ public class UserData {
         return userData.get(username);
     }
 
+    public static User[] getAllUsers() {
+        return userData.values().toArray(new User[userData.values().size()]);
+    }
+
     public static void setPublicKey(String username, PublicKey publicKey) throws UnknownUserException {
         User user = userData.get(username);
         if (user == null) {
