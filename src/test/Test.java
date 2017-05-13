@@ -1,6 +1,7 @@
 package test;
 
 import data.UserData;
+import exception.UnknownUserException;
 import util.CommonUtils;
 import util.EncryptionUtils;
 import util.KeyGenerator;
@@ -24,24 +25,20 @@ import static java.nio.charset.StandardCharsets.ISO_8859_1;
  */
 
 public class Test {
-    public static void main(String[] args) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException {
+    public static void main(String[] args) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, UnknownUserException {
         testMessageWrapper();
 //        System.out.println(testMD5().length);
 //        testByteStringConversion();
 //        testUserData();
     }
 
-    private static void testUserData() throws IOException, NoSuchAlgorithmException {
-        UserData.registerUser("a");
-        UserData.registerUser("b");
-    }
 
-    private static byte[] testMD5() throws NoSuchAlgorithmException, BadPaddingException, InvalidKeySpecException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, IOException, SignatureException {
+    private static byte[] testMD5() throws NoSuchAlgorithmException, BadPaddingException, InvalidKeySpecException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, IOException, SignatureException, UnknownUserException {
         MessageDigest digest = MessageDigest.getInstance("MD5");
         return digest.digest(testMessageWrapper());
     }
 
-    private static byte[] testMessageWrapper() throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, InvalidKeySpecException, SignatureException {
+    private static byte[] testMessageWrapper() throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, InvalidKeySpecException, SignatureException, UnknownUserException {
 
         // RSA Key generation
         KeyGenerator.generateRSAKey("key/test/test.pri", "key/test/test.pub");

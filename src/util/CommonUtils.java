@@ -41,15 +41,4 @@ public class CommonUtils {
         return string.getBytes(StandardCharsets.ISO_8859_1);
     }
 
-    public static byte[] readAllBytesFromInputStream(InputStream inputStream) throws IOException {
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] buf = new byte[1024];
-        int size;
-        while ((size = bufferedInputStream.read(buf)) != -1) {
-            outputStream.write(buf, 0, size);
-        }
-        return outputStream.toByteArray();
-    }
-
 }

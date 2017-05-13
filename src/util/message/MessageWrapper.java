@@ -1,5 +1,7 @@
 package util.message;
 
+import data.UserData;
+import exception.UnknownUserException;
 import util.CommonUtils;
 import util.EncryptionUtils;
 
@@ -36,10 +38,10 @@ public class MessageWrapper {
         System.arraycopy(signature, 0, wrappedData, dataWithoutSignature.length, EncryptionUtils.BYTE_BLOCK_SIZE);
     }
 
-    public MessageWrapper(byte[] wrappedData, PublicKey publicKey, Key privateKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException {
+    public MessageWrapper(byte[] wrappedData, PublicKey publicKey, Key privateKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, UnknownUserException {
         this.wrappedData = wrappedData;
         byte[] dataWithoutSignature = Arrays.copyOfRange(wrappedData, 0, wrappedData.length - EncryptionUtils.BYTE_BLOCK_SIZE);
-        // publicKey == null means don't check the signature
+        // For client
         if (publicKey != null) {
             byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
             byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
@@ -52,7 +54,25 @@ public class MessageWrapper {
         int headerLength = Integer.parseInt(EncryptionUtils.decryptWithRSA(lengthBlock, privateKey));
         byte[] encryptedHeader = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength);
         this.header = MessageHeader.parse(EncryptionUtils.decryptWithRSA(encryptedHeader, privateKey));
+        // For server
+        if (publicKey == null) {
+            String username = this.header.get("Username");
+            if (username == null && !this.header.get("Service").equals("register")) {
+                throw new UnknownUserException(username);
+            } else {
+                PublicKey key = UserData.getPublicKey(username);
+                if (key != null) {
+                    byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
+                    byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+                    byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, key));
+                    if (!Arrays.equals(hash, hashFromSignature)) {
+                        throw new SignatureException();
+                    }
+                }
+            }
+        }
         this.body = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength, dataWithoutSignature.length);
+
     }
 
     public MessageHeader getHeader() {
@@ -69,6 +89,6 @@ public class MessageWrapper {
 
     @Override
     public String toString() {
-        return "The header is " + this.header + "\nThe body is " + Arrays.toString(this.body);
+        return "=== Header ===\n" + this.header + "=== Body ===\nLength: " + this.body.length + "\nData: " + Arrays.toString(this.body) + "\n";
     }
 }

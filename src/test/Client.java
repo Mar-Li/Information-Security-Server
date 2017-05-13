@@ -7,6 +7,8 @@ import util.message.MessageHeader;
 import util.message.MessageWrapper;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -28,15 +30,19 @@ public class Client {
             MessageHeader header = new MessageHeader();
             header
                     .add("Service", "register")
-                    .add("Username", "lfs");
+                    .add("Username", "lfs" + System.currentTimeMillis());
             byte[] body = EncryptionUtils.encryptWithRSA(CommonUtils.objectToString(keyPair.getPublic()), serverPublicKey);
-            System.out.println(Arrays.toString(body));
             MessageWrapper request = new MessageWrapper(header, body, serverPublicKey, keyPair.getPrivate());
             System.out.println(request);
-            socket.getOutputStream().write(request.getWrappedData());
-            byte[] responseBytes = CommonUtils.readAllBytesFromInputStream(socket.getInputStream());
-            MessageWrapper response = new MessageWrapper(responseBytes, serverPublicKey, keyPair.getPrivate());
+            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+            outputStream.writeObject(request.getWrappedData());
+            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+            byte[] data = (byte[])inputStream.readObject();
+            MessageWrapper response = new MessageWrapper(data, serverPublicKey, keyPair.getPrivate());
             System.out.println(response);
+            KeyPair myKeyPair = (KeyPair)CommonUtils.stringToObject(EncryptionUtils.decryptWithRSA(response.getBody(), keyPair.getPrivate()));
+            System.out.println(myKeyPair);
+            socket.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,8 +1,10 @@
 package data;
 
+import exception.UnknownUserException;
 import util.KeyGenerator;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -17,34 +19,43 @@ public class UserData {
     // just store in memory.
     private static Map<String, User> userData = new HashMap<>();
 
-    public static KeyPair registerUser(String username) throws IOException, NoSuchAlgorithmException {
-        if (userData.get(username) != null) {
-            return null;
+    public static void addUser(String username) {
+        userData.put(username, new User(username));
+    }
+
+    public static User getUser(String username) {
+        return userData.get(username);
+    }
+
+    public static void setPublicKey(String username, PublicKey publicKey) throws UnknownUserException {
+        User user = userData.get(username);
+        if (user == null) {
+            throw new UnknownUserException(username);
+        } else {
+            user.setPublicKey(publicKey);
         }
-        KeyPair keyPair = KeyGenerator.generateRSAKey("key/user" + username + ".pri", "key/user" + username + ".pub");
-        userData.put(username, new User(keyPair.getPublic()));
-        return keyPair;
+    }
+
+    public static void setIPAndPort(String username, InetAddress IP, Integer port) throws UnknownUserException {
+        User user = userData.get(username);
+        if (user == null) {
+            throw new UnknownUserException(username);
+        } else {
+            user.setIP(IP);
+            user.setPort(port);
+        }
     }
 
     public static PublicKey getPublicKey(String username) {
-        return userData.get(username) == null ? null : userData.get(username).publicKey;
+        return userData.get(username) == null ? null : userData.get(username).getPublicKey();
     }
 
-    public static String getIP(String username) {
-        return userData.get(username) == null ? null : userData.get(username).IP;
+    public static InetAddress getIP(String username) {
+        return userData.get(username) == null ? null : userData.get(username).getIP();
     }
 
-    public static String getPort(String username) {
-        return userData.get(username) == null ? null : userData.get(username).port;
+    public static Integer getPort(String username) {
+        return userData.get(username) == null ? null : userData.get(username).getPort();
     }
 
-    private static class User {
-        PublicKey publicKey;
-        String IP;
-        String port;
-
-        public User(PublicKey publicKey) {
-            this.publicKey = publicKey;
-        }
-    }
 }
