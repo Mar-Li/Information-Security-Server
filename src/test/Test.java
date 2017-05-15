@@ -14,6 +14,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
@@ -36,6 +37,22 @@ public class Test {
     private static byte[] testMD5() throws NoSuchAlgorithmException, BadPaddingException, InvalidKeySpecException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, IOException, SignatureException, UnknownUserException {
         MessageDigest digest = MessageDigest.getInstance("MD5");
         return digest.digest(testMessageWrapper());
+    }
+
+    private static int testSymmetricEncryption() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, CertificateException, KeyStoreException {
+        Client a = new Client("a@fudan.edu.cn", "A's password");
+        Key key = KeyGenerator.generateSymmetricKey();
+        String testText = "abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcdefgh";
+        byte[] message = EncryptionUtils.symmetricEncrypt(testText, key);
+        String decryptedText = EncryptionUtils.symmetricDecrypt(message, key);
+        return testText.compareTo(decryptedText);
+    }
+
+    private static void testFileTransition() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
+        Client a = new Client("a@fudan.edu.cn", "A's password");
+        Key key = KeyGenerator.generateSymmetricKey();
+        byte[] message = EncryptionUtils.encryptFile("dblpxml.pdf", key);
+        EncryptionUtils.decryptFile("decryptedFile.pdf", message, key);
     }
 
     private static byte[] testMessageWrapper() throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, InvalidKeySpecException, SignatureException, UnknownUserException {

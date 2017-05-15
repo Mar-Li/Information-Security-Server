@@ -1,6 +1,10 @@
 package util;
 
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,26 +17,56 @@ import java.security.spec.X509EncodedKeySpec;
  * Created by lifengshuang on 09/05/2017.
  */
 public class KeyGenerator {
+    private static void storePublicKey(Key key, String filepath) throws IOException {
+        X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(
+                key.getEncoded());
+        FileOutputStream fos = new FileOutputStream(filepath);
+        fos.write(x509EncodedKeySpec.getEncoded());
+        fos.close();
+    }
+
+    private static void storePrivateKey(Key key, String filepath) throws IOException {
+        PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(
+                key.getEncoded());
+        FileOutputStream fos = new FileOutputStream(filepath);
+        fos.write(pkcs8EncodedKeySpec.getEncoded());
+        fos.close();
+    }
+
+    public static Key generateSymmetricKey() throws NoSuchAlgorithmException, IOException {
+        final javax.crypto.KeyGenerator keyGenerator = javax.crypto.KeyGenerator.getInstance("AES");
+        keyGenerator.init(256);
+        return keyGenerator.generateKey();
+    }
+
+    public static KeyPair generateRSAKey() throws NoSuchAlgorithmException {
+        final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(2048);
+        final KeyPair key = keyGen.generateKeyPair();
+        return key;
+    }
 
     public static KeyPair generateRSAKey(String privateKeyPath, String publicKeyPath) throws NoSuchAlgorithmException, IOException {
         final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(2048);
         final KeyPair key = keyGen.generateKeyPair();
-
-        // Store Public Key.
-        X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(
-                key.getPublic().getEncoded());
-        FileOutputStream fos = new FileOutputStream(publicKeyPath);
-        fos.write(x509EncodedKeySpec.getEncoded());
-        fos.close();
-
-        // Store Private Key.
-        PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(
-                key.getPrivate().getEncoded());
-        fos = new FileOutputStream(privateKeyPath);
-        fos.write(pkcs8EncodedKeySpec.getEncoded());
-        fos.close();
+        storePublicKey(key.getPublic(), publicKeyPath);
+        storePrivateKey(key.getPrivate(), privateKeyPath);
         return key;
+    }
+
+    public static PublicKey loadPublicKey(InputStream in) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] keyBytes = IOUtils.toByteArray(in);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePublic(spec);
+    }
+
+    public static PrivateKey loadPrivateKey(InputStream in) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] keyBytes = IOUtils.toByteArray(in);
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePrivate(spec);
     }
 
     public static PublicKey loadPublicKey(String publicKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -42,11 +76,15 @@ public class KeyGenerator {
         return kf.generatePublic(spec);
     }
 
-    public static PrivateKey loadPrivateKey(String privateKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] keyBytes = Files.readAllBytes(new File(privateKeyPath).toPath());
+    private static Key loadSecretKey(String algorithm, String keyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] keyBytes = Files.readAllBytes(new File(keyPath).toPath());
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
+        KeyFactory kf = KeyFactory.getInstance(algorithm);
         return kf.generatePrivate(spec);
+    }
+
+    public static PrivateKey loadPrivateKey(String privateKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return (PrivateKey) loadSecretKey("RSA", privateKeyPath);
     }
 
 }
