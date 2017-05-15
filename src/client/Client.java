@@ -18,10 +18,10 @@ public class Client {
     private List<Client> friends;
     private final KeyPair keyPair;
 
-    public Client(String username, String password, KeyPair keyPair) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    public Client(String username, char[] password, KeyPair keyPair) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         this.username = username;
-        this.pwdToKey = password.toCharArray();
-        keyStore = KeyStore.getInstance("JKS");
+        this.pwdToKey = password;
+        keyStore = KeyStore.getInstance("JKS");//default most proper in environment
         // initialize keystore
         keyStore.load(null, pwdToKey);
         protectionParameter = new KeyStore.PasswordProtection(pwdToKey);
@@ -53,5 +53,20 @@ public class Client {
     public void saveSessionKey(String keyAlias, SecretKey key) throws KeyStoreException {
         KeyStore.SecretKeyEntry keyEntry = new KeyStore.SecretKeyEntry(key);
         keyStore.setEntry(keyAlias, keyEntry, protectionParameter);
+    }
+
+    public String[][] getFriendList() {
+        if (friends.size() == 0) {
+            return null;
+        }
+        String[][] result = new String[friends.size()][1];
+        for (int i = 0; i < friends.size(); i++) {
+            result[i][0] = friends.get(i).username;
+        }
+        return result;
+    }
+
+    public Client getFriend(int i) {
+        return friends.get(i);
     }
 }

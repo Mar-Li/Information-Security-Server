@@ -51,7 +51,7 @@ public class EncryptionUtils {
         return new String(cipher.doFinal(data));
     }
 
-    public static byte[] encryptWithRSA(String text, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, UnsupportedEncodingException {
+    public static byte[] encryptWithRSA(String text, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException{
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, key);
         int blocks = (text.length() + STRING_BLOCK_SIZE - 1) / STRING_BLOCK_SIZE;

@@ -55,19 +55,19 @@ public class KeyGenerator {
         return key;
     }
 
-    public static PublicKey loadPublicKey(InputStream in) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] keyBytes = IOUtils.toByteArray(in);
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePublic(spec);
-    }
-
-    public static PrivateKey loadPrivateKey(InputStream in) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] keyBytes = IOUtils.toByteArray(in);
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePrivate(spec);
-    }
+//    public static PublicKey loadPublicKey(InputStream in) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+//        byte[] keyBytes = IOUtils.toByteArray(in);
+//        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+//        KeyFactory kf = KeyFactory.getInstance("RSA");
+//        return kf.generatePublic(spec);
+//    }
+//
+//    public static PrivateKey loadPrivateKey(InputStream in) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+//        byte[] keyBytes = IOUtils.toByteArray(in);
+//        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+//        KeyFactory kf = KeyFactory.getInstance("RSA");
+//        return kf.generatePrivate(spec);
+//    }
 
     public static PublicKey loadPublicKey(String publicKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] keyBytes = Files.readAllBytes(new File(publicKeyPath).toPath());
