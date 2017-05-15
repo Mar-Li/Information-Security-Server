@@ -4,6 +4,7 @@ import data.User;
 import data.UserData;
 import exception.ServiceNotFoundException;
 import exception.UnknownUserException;
+import service.FriendService;
 import service.RegisterService;
 import service.UserService;
 import util.message.MessageHeader;
@@ -38,6 +39,10 @@ public class RequestHandler implements Runnable {
             // There's only a few(two) users in this project, so server don't support querying one user.
             case "getAllUsers":
                 response = new UserService().handle(request);
+                break;
+            case "addFriend":
+                response = new FriendService().handle(request);
+                break;
             default:
                 break;
         }
@@ -57,6 +62,8 @@ public class RequestHandler implements Runnable {
             this.user = UserData.getUser(username);
             System.out.println("From user: " + username);
             System.out.println("Address: " + socket.getInetAddress() + " " + socket.getPort());
+            UserData.setIP(username, socket.getInetAddress());
+
             String service = request.getHeader().get("Service");
             if (service == null) {
                 throw new ServiceNotFoundException();
@@ -64,8 +71,6 @@ public class RequestHandler implements Runnable {
             System.out.println("Service: " + service);
 
             byte[] response = handleRequest(request, service);
-
-            UserData.setIPAndPort(username, socket.getInetAddress(), socket.getPort());
 
             if (response != null) {
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());

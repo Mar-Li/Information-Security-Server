@@ -24,6 +24,7 @@ import java.security.*;
  * Header includes fields:
  *   Service: register
  *   Username: <username>
+ *   Port: <port>
  *
  * Body:
  *   User's public key, encrypted by server's public key
@@ -41,9 +42,11 @@ public class RegisterService implements Service {
     public byte[] handle(MessageWrapper request) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, ClassNotFoundException, UnknownUserException {
 
         String username = request.getHeader().get("Username");
+        String port = request.getHeader().get("Port");
         KeyPair keyPair = KeyGenerator.generateRSAKey("key/user/" + username + ".pri", "key/user/" + username + ".pub");
         UserData.addUser(username);
         UserData.setPublicKey(username, keyPair.getPublic());
+        UserData.setPort(username, Integer.parseInt(port));
         String requestBody = EncryptionUtils.decryptWithRSA(request.getBody(), Server.SERVER_PRIVATE_KEY);
         PublicKey publicKey = (PublicKey)CommonUtils.byteArrayToObject(CommonUtils.stringToByteArray(requestBody));
         byte[] responseBody = EncryptionUtils.encryptWithRSA(CommonUtils.objectToString(keyPair), publicKey);
