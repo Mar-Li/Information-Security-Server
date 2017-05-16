@@ -1,7 +1,11 @@
 package client;
 
+import exception.UnknownUserException;
+
 import javax.crypto.SecretKey;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.List;
@@ -10,15 +14,18 @@ import java.util.List;
  * Created by mayezhou on 2017/5/11.
  */
 public class Client {
+    public static int portCount = 2000;
     //store session key in memory
     private KeyStore keyStore;
     private char[] pwdToKey;
     private KeyStore.ProtectionParameter protectionParameter;
     public String username;
-    private List<Client> friends;
+    private List<Friend> friends;
     private final KeyPair keyPair;
+    private ServerSocket listenSocket;
+    private int port;
 
-    public Client(String username, char[] password, KeyPair keyPair) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    public Client(String username, char[] password, KeyPair keyPair, int port) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         this.username = username;
         this.pwdToKey = password;
         keyStore = KeyStore.getInstance("JKS");//default most proper in environment
@@ -26,15 +33,13 @@ public class Client {
         keyStore.load(null, pwdToKey);
         protectionParameter = new KeyStore.PasswordProtection(pwdToKey);
         this.keyPair = keyPair;
+        this.port = port;
+        listenSocket = new ServerSocket(port);
+        new Thread(new ClientListenRunnable(listenSocket, this)).start();
     }
 
-    public Client(KeyStore keyStore, char[] pwdToKey, KeyStore.ProtectionParameter protectionParameter, String username, List<Client> friends, KeyPair keyPair) {
-        this.keyStore = keyStore;
-        this.pwdToKey = pwdToKey;
-        this.protectionParameter = protectionParameter;
-        this.username = username;
-        this.friends = friends;
-        this.keyPair = keyPair;
+    public int getPort() {
+        return port;
     }
 
     public PublicKey getPublicKey() {
@@ -61,12 +66,26 @@ public class Client {
         }
         String[][] result = new String[friends.size()][1];
         for (int i = 0; i < friends.size(); i++) {
-            result[i][0] = friends.get(i).username;
+            result[i][0] = friends.get(i).name;
         }
         return result;
     }
 
-    public Client getFriend(int i) {
+    public Friend getFriend(int i) {
         return friends.get(i);
+    }
+
+    public void addFriend(Friend friend) {
+        friends.add(friend);
+    }
+
+    public PublicKey getFriendPublicKey(String name) throws UnknownUserException {
+        for (Friend friend :
+                friends) {
+            if (friend.name.equals(name)) {
+                return friend.publicKey;
+            }
+        }
+        throw new UnknownUserException(name);
     }
 }

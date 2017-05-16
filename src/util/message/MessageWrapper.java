@@ -1,5 +1,6 @@
 package util.message;
 
+import client.Client;
 import data.UserData;
 import exception.UnknownUserException;
 import util.CommonUtils;
@@ -8,7 +9,7 @@ import util.EncryptionUtils;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.nio.charset.StandardCharsets;
+import javax.crypto.SecretKey;
 import java.security.*;
 import java.util.Arrays;
 
@@ -38,7 +39,50 @@ public class MessageWrapper {
         System.arraycopy(signature, 0, wrappedData, dataWithoutSignature.length, EncryptionUtils.BYTE_BLOCK_SIZE);
     }
 
-    public MessageWrapper(byte[] wrappedData, PublicKey publicKey, Key privateKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, UnknownUserException {
+    //For IM init
+    public MessageWrapper(byte[] wrappedData, PrivateKey privateKey, Client client) throws Exception {
+        this.wrappedData = wrappedData;
+        byte[] dataWithoutSignature = Arrays.copyOfRange(wrappedData, 0, wrappedData.length - EncryptionUtils.BYTE_BLOCK_SIZE);
+        byte[] lengthBlock = Arrays.copyOfRange(dataWithoutSignature, 0, EncryptionUtils.BYTE_BLOCK_SIZE);
+        int headerLength = Integer.parseInt(EncryptionUtils.decryptWithRSA(lengthBlock, privateKey));
+        byte[] encryptedHeader = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength);
+        this.header = MessageHeader.parse(EncryptionUtils.decryptWithRSA(encryptedHeader, privateKey));
+        String username = this.header.get("Username");
+        if (username == null) {
+            throw new UnknownUserException(null);
+        } else {
+            PublicKey key = client.getFriendPublicKey(username);
+            if (key != null) {
+                byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
+                byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+                byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, key));
+                if (!Arrays.equals(hash, hashFromSignature)) {
+                    throw new SignatureException();
+                }
+            } else {
+                throw new Exception(username + " is not " + client.username + "'s friend!");
+            }
+        }
+        this.body = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength, dataWithoutSignature.length);
+    }
+
+    public MessageWrapper(byte[] wrappedData, PublicKey publicKey, SecretKey sessionKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException {
+        this.wrappedData = wrappedData;
+        byte[] dataWithoutSignature = Arrays.copyOfRange(wrappedData, 0, wrappedData.length - EncryptionUtils.BYTE_BLOCK_SIZE);
+        byte[] lengthBlock = Arrays.copyOfRange(dataWithoutSignature, 0, EncryptionUtils.BYTE_BLOCK_SIZE);
+        int headerLength = Integer.parseInt(EncryptionUtils.symmetricDecrypt(lengthBlock, sessionKey));
+        byte[] encryptedHeader = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength);
+        this.header = MessageHeader.parse(EncryptionUtils.symmetricDecrypt(encryptedHeader, sessionKey));
+        this.body = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength, dataWithoutSignature.length);
+        byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
+        byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+        byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, publicKey));
+        if (!Arrays.equals(hash, hashFromSignature)) {
+            throw new SignatureException();
+        }
+    }
+
+    public MessageWrapper(byte[] wrappedData, PublicKey publicKey, PrivateKey privateKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, UnknownUserException {
         this.wrappedData = wrappedData;
         byte[] dataWithoutSignature = Arrays.copyOfRange(wrappedData, 0, wrappedData.length - EncryptionUtils.BYTE_BLOCK_SIZE);
         // For client
@@ -72,7 +116,6 @@ public class MessageWrapper {
             }
         }
         this.body = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength, dataWithoutSignature.length);
-
     }
 
     public MessageHeader getHeader() {

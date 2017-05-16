@@ -37,7 +37,6 @@ public class StartPanel extends JPanel {
     public StartPanel(MyFrame frame) {
         this.frame = frame;
         setLayout(new GridLayout(5, 1));
-        setSize(1050, 720);
         add(label1);
         add(usernameComp);
         add(label2);
@@ -53,11 +52,13 @@ public class StartPanel extends JPanel {
                 try {
                     //wrap message
                     KeyPair initKeyPair = KeyGenerator.generateRSAKey();
+                    int clientPort = Client.portCount++;
                     PublicKey serverPublicKey = KeyGenerator.loadPublicKey("key/server.pub");
                     MessageHeader messageHeader = new MessageHeader();
                     messageHeader
                             .add("Service", "register")
-                            .add("Username", username);
+                            .add("Username", username)
+                            .add("Port", String.valueOf(clientPort));
                     byte[] body = EncryptionUtils.encryptWithRSA(CommonUtils.objectToString(initKeyPair.getPublic()), serverPublicKey);
                     MessageWrapper request = new MessageWrapper(messageHeader, body, serverPublicKey, initKeyPair.getPrivate());
                     System.out.println(request);
@@ -75,16 +76,25 @@ public class StartPanel extends JPanel {
                     System.out.println("Get response from server");
                     MessageWrapper response = new MessageWrapper(receivedBytes, serverPublicKey, initKeyPair.getPrivate());
                     //parse response
-                    String status = response.getHeader().get("status");
+                    String status = response.getHeader().get("Status");
                     if (status.equals("200")) {
                         System.out.println("register success, get correct response from server");
                         byte[] encryptedBody = response.getBody();
-                        String decrypedBody = EncryptionUtils.decryptWithRSA(encryptedBody, serverPublicKey);
+                        String decrypedBody = EncryptionUtils.decryptWithRSA(encryptedBody, initKeyPair.getPrivate());
                         //get true RSA keypair
                         KeyPair myKeyPair = (KeyPair) CommonUtils.byteArrayToObject(CommonUtils.stringToByteArray(decrypedBody));
-                        Client client = new Client(username, password, myKeyPair);
+                        Client client = new Client(username, password, myKeyPair, clientPort);
                         frame.setClient(client);
                         System.out.println("register done, create client " + client.username);
+                        //send listening port to server
+                        MessageHeader header = new MessageHeader();
+                        header
+                                .add("Service", "port")
+                                .add("Username", client.username);
+                        byte[] body2 = EncryptionUtils.encryptWithRSA(String.valueOf(client.getPort()), serverPublicKey);
+                        MessageWrapper mw = new MessageWrapper(header, body2, serverPublicKey, client.getPrivateKey());
+                        out.writeObject(mw.getWrappedData());
+                        System.out.println("send listening port" + client.getPort() + " to server");
                     }
                     socket.close();
                     frame.cardLayout.next(frame.mainPanel);

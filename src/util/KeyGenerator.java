@@ -33,7 +33,7 @@ public class KeyGenerator {
         fos.close();
     }
 
-    public static Key generateSymmetricKey() throws NoSuchAlgorithmException, IOException {
+    public static SecretKey generateSymmetricKey() throws NoSuchAlgorithmException, IOException {
         final javax.crypto.KeyGenerator keyGenerator = javax.crypto.KeyGenerator.getInstance("AES");
         keyGenerator.init(256);
         return keyGenerator.generateKey();

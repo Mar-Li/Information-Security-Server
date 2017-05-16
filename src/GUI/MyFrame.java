@@ -30,7 +30,7 @@ public class MyFrame extends JFrame{
         mainPanel.add(endPanel, "third");
         container.add(mainPanel);
         this.setTitle("IM");
-        this.setSize(1150, 720);
+        this.setSize(325, 550);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
@@ -38,7 +38,7 @@ public class MyFrame extends JFrame{
     }
 
     public static void main(String[] args) {
-        MyFrame frame = new MyFrame();
+        new MyFrame();
     }
 
     public void setClient(Client client) {

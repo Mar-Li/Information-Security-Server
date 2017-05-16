@@ -75,6 +75,7 @@ public class RequestHandler implements Runnable {
             if (response != null) {
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                 outputStream.writeObject(response);
+                System.out.println("Respond to client" + username);
                 socket.close();
             } else {
                 throw new ServiceNotFoundException();
