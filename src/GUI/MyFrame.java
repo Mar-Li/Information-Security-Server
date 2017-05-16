@@ -38,7 +38,8 @@ public class MyFrame extends JFrame{
     }
 
     public static void main(String[] args) {
-        new MyFrame();
+        new Thread(() -> new MyFrame()).start();
+        new Thread(() -> new MyFrame()).start();
     }
 
     public void setClient(Client client) {

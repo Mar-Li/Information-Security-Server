@@ -14,6 +14,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
+import java.util.Arrays;
 
 /**
  * Created by lifengshuang on 11/05/2017.
@@ -47,6 +48,7 @@ public class RegisterService implements Service {
         UserData.addUser(username);
         UserData.setPublicKey(username, keyPair.getPublic());
         UserData.setPort(username, Integer.parseInt(port));
+//        System.out.println(Arrays.toString(UserData.getAllUsers()));
         String requestBody = EncryptionUtils.decryptWithRSA(request.getBody(), Server.SERVER_PRIVATE_KEY);
         PublicKey publicKey = (PublicKey)CommonUtils.byteArrayToObject(CommonUtils.stringToByteArray(requestBody));
         byte[] responseBody = EncryptionUtils.encryptWithRSA(CommonUtils.objectToString(keyPair), publicKey);

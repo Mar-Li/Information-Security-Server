@@ -93,6 +93,9 @@ public class FriendService implements Service {
         MessageWrapper request = new MessageWrapper(header, body, friend.getPublicKey(), Server.SERVER_PRIVATE_KEY);
         ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
         outputStream.writeObject(request.getWrappedData());
+        System.out.println("Forwarding friendRequest");
+        System.out.println(request);
+        //get response from target
         ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
         byte[] data = (byte[])inputStream.readObject();
         MessageWrapper response = new MessageWrapper(data, friend.getPublicKey(), Server.SERVER_PRIVATE_KEY);

@@ -2,7 +2,6 @@ package GUI;
 
 import client.Client;
 import client.Friend;
-import exception.UnknownUserException;
 import util.CommonUtils;
 import util.EncryptionUtils;
 import util.KeyGenerator;
@@ -82,10 +81,6 @@ public class EndPanel extends JPanel implements ActionListener{
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             byte[] received = (byte[]) in.readObject();
             MessageWrapper messageUnwrapper = new MessageWrapper(received, this.friend.publicKey, client.getPrivateKey());
-            String status = messageUnwrapper.getHeader().get("Status");
-            if (!status.equals("200")) {
-                throw new UnknownUserException(friend.name);
-            }
             byte[] body2 = messageUnwrapper.getBody();
             String m = EncryptionUtils.symmetricDecrypt(body2, sessionKey);
             if (m.equals("Confirm")) {
@@ -93,6 +88,7 @@ public class EndPanel extends JPanel implements ActionListener{
             } else {
                 throw new Exception("Init Chat Failure");
             }
+
         } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | ClassNotFoundException e) {
             e.printStackTrace();
         } catch (Exception e) {// | SignatureException | UnknownUserException

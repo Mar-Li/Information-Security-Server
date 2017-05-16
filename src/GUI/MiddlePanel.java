@@ -2,6 +2,7 @@ package GUI;
 
 import client.Client;
 import client.Friend;
+import data.User;
 import exception.UnknownUserException;
 import util.CommonUtils;
 import util.EncryptionUtils;
@@ -91,7 +92,7 @@ public class MiddlePanel extends JPanel implements ActionListener{
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        //input targer name
+        //input target name
         String targetName = JOptionPane.showInputDialog("Friend's name:");
         if (targetName == null) {
             return;
@@ -101,9 +102,10 @@ public class MiddlePanel extends JPanel implements ActionListener{
             PublicKey serverPublicKey = KeyGenerator.loadPublicKey("key/server.pub");
             MessageHeader messageHeader = new MessageHeader();
             messageHeader
-                    .add("Service", "register")
+                    .add("Service", "addFriend")
+                    .add("Friend", targetName)
                     .add("Username", client.username);
-            byte[] body = EncryptionUtils.encryptWithRSA(targetName, serverPublicKey);
+            byte[] body = EncryptionUtils.encryptWithRSA("", serverPublicKey);
             MessageWrapper request = new MessageWrapper(messageHeader, body, serverPublicKey, client.getPrivateKey());
             System.out.println(request);
 
@@ -111,7 +113,7 @@ public class MiddlePanel extends JPanel implements ActionListener{
             Socket socket = new Socket("127.0.0.1", 2333);
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             out.writeObject(request.getWrappedData());
-            System.out.println("sending request to server");
+            System.out.println("sending Friend request to server");
 
             //get response
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -120,17 +122,16 @@ public class MiddlePanel extends JPanel implements ActionListener{
             System.out.println("Get response from server");
             MessageWrapper response = new MessageWrapper(receivedBytes, serverPublicKey, client.getPrivateKey());
             //parse response
-            String status = response.getHeader().get("Status");
-            if (status.equals("200")) {//TODO
-                System.out.println("Befriend success.");
-                int port = Integer.parseInt(response.getHeader().get("Port"));
-                String ip = response.getHeader().get("Ip");
+            String status = response.getHeader().get("Response");
+            if (status.equals("Accept")) {
+                JOptionPane.showMessageDialog(null, targetName + " accepted your request!");
                 byte[] encryptedBody = response.getBody();
                 String decrypedBody = EncryptionUtils.decryptWithRSA(encryptedBody, client.getPrivateKey());
-                PublicKey publicKey = (PublicKey) CommonUtils.stringToObject(decrypedBody);
-                Friend friend = new Friend(targetName, port, ip, publicKey);
-                client.addFriend(friend);
+                User user = (User) CommonUtils.stringToObject(decrypedBody);
+                System.out.println("Friend's IP is " + user.getIP().getHostAddress());
                 refresh();
+            } else {
+                JOptionPane.showMessageDialog(null, targetName + " rejected your request!");
             }
             socket.close();
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | BadPaddingException | NoSuchPaddingException | IllegalBlockSizeException | InvalidKeyException | SignatureException | UnknownUserException | ClassNotFoundException e1) {

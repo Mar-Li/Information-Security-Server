@@ -5,7 +5,6 @@ import exception.UnknownUserException;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.List;
@@ -35,7 +34,9 @@ public class Client {
         this.keyPair = keyPair;
         this.port = port;
         listenSocket = new ServerSocket(port);
+        System.out.println("Start Client socket " + username + " in port " + port);
         new Thread(new ClientListenRunnable(listenSocket, this)).start();
+        portCount++;
     }
 
     public int getPort() {

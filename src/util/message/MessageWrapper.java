@@ -2,15 +2,21 @@ package util.message;
 
 import client.Client;
 import data.UserData;
+import exception.NotFriendException;
+import exception.ServiceNotFoundException;
 import exception.UnknownUserException;
+import server.Server;
 import util.CommonUtils;
 import util.EncryptionUtils;
+import util.KeyGenerator;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**
@@ -39,8 +45,8 @@ public class MessageWrapper {
         System.arraycopy(signature, 0, wrappedData, dataWithoutSignature.length, EncryptionUtils.BYTE_BLOCK_SIZE);
     }
 
-    //For IM init
-    public MessageWrapper(byte[] wrappedData, PrivateKey privateKey, Client client) throws Exception {
+    //For Client listening socket
+    public MessageWrapper(byte[] wrappedData, PrivateKey privateKey, Client client) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, UnknownUserException, ServiceNotFoundException, SignatureException, NotFriendException, IOException, InvalidKeySpecException {
         this.wrappedData = wrappedData;
         byte[] dataWithoutSignature = Arrays.copyOfRange(wrappedData, 0, wrappedData.length - EncryptionUtils.BYTE_BLOCK_SIZE);
         byte[] lengthBlock = Arrays.copyOfRange(dataWithoutSignature, 0, EncryptionUtils.BYTE_BLOCK_SIZE);
@@ -50,18 +56,28 @@ public class MessageWrapper {
         String username = this.header.get("Username");
         if (username == null) {
             throw new UnknownUserException(null);
-        } else {
-            PublicKey key = client.getFriendPublicKey(username);
-            if (key != null) {
-                byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
-                byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
-                byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, key));
-                if (!Arrays.equals(hash, hashFromSignature)) {
-                    throw new SignatureException();
-                }
-            } else {
-                throw new Exception(username + " is not " + client.username + "'s friend!");
+        }
+        String service = this.header.get("Service");
+        PublicKey key;
+        switch (service) {
+            case "friendRequest":
+                key = KeyGenerator.loadPublicKey("key/server.pub");
+                break;
+            case "InitChat":
+                key = client.getFriendPublicKey(username);
+                break;
+            default:
+                throw new ServiceNotFoundException();
+        }
+        if (key != null) {
+            byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
+            byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+            byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, key));
+            if (!Arrays.equals(hash, hashFromSignature)) {
+                throw new SignatureException();
             }
+        } else {
+            throw new NotFriendException(username + " is not " + client.username + "'s friend!");
         }
         this.body = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength, dataWithoutSignature.length);
     }

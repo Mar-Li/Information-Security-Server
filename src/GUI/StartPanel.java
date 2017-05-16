@@ -52,7 +52,7 @@ public class StartPanel extends JPanel {
                 try {
                     //wrap message
                     KeyPair initKeyPair = KeyGenerator.generateRSAKey();
-                    int clientPort = Client.portCount++;
+                    int clientPort = Client.portCount;
                     PublicKey serverPublicKey = KeyGenerator.loadPublicKey("key/server.pub");
                     MessageHeader messageHeader = new MessageHeader();
                     messageHeader
