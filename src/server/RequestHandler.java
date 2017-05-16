@@ -59,20 +59,25 @@ public class RequestHandler implements Runnable {
 
             System.out.println("===== New Request =====");
             String username = request.getHeader().get("Username");
-            this.user = UserData.getUser(username);
             System.out.println("From user: " + username);
             System.out.println("Address: " + socket.getInetAddress() + " " + socket.getPort());
-            UserData.setIP(username, socket.getInetAddress());
 
             String service = request.getHeader().get("Service");
+
             if (service == null) {
                 throw new ServiceNotFoundException();
             }
+            if (!service.equals("register") && UserData.getUser(username) == null) {
+                throw new UnknownUserException(username);
+            }
+
             System.out.println("Service: " + service);
 
             byte[] response = handleRequest(request, service);
 
             if (response != null) {
+                this.user = UserData.getUser(username);
+                UserData.setIP(username, socket.getInetAddress());
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                 outputStream.writeObject(response);
                 System.out.println("Respond to client" + username);
