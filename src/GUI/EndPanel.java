@@ -4,9 +4,7 @@ import client.Client;
 import client.Friend;
 import exception.ServiceNotFoundException;
 import exception.UnknownUserException;
-import util.CommonUtils;
 import util.EncryptionUtils;
-import util.KeyGenerator;
 import util.message.MessageHeader;
 import util.message.MessageWrapper;
 
@@ -22,7 +20,6 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
 import java.security.InvalidKeyException;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 

@@ -4,3 +4,9 @@ Information-Security-Server.iml
 key/test/
 key/user/
 key/temp.*
+.classpath
+.project
+Information-Security-Server.eml
+Information-Security-Server.userlibraries
+dblpxml.pdf
+lib/

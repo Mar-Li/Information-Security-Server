@@ -1,12 +1,8 @@
 package data;
 
 import exception.UnknownUserException;
-import util.KeyGenerator;
 
-import java.io.IOException;
 import java.net.InetAddress;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;

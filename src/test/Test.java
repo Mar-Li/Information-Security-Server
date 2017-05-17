@@ -1,6 +1,5 @@
 package test;
 
-import data.UserData;
 import exception.UnknownUserException;
 import util.CommonUtils;
 import util.EncryptionUtils;
@@ -14,7 +13,6 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 

@@ -1,11 +1,9 @@
 package GUI;
 
 import client.Client;
-import server.Server;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 
 /**
  * Created by mayezhou on 16/6/1.

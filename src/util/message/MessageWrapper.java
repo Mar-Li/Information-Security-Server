@@ -5,7 +5,6 @@ import data.UserData;
 import exception.NotFriendException;
 import exception.ServiceNotFoundException;
 import exception.UnknownUserException;
-import server.Server;
 import util.CommonUtils;
 import util.EncryptionUtils;
 import util.KeyGenerator;

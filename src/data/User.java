@@ -5,10 +5,6 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.security.PublicKey;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by lifengshuang on 13/05/2017.
