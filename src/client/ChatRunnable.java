@@ -1,13 +1,13 @@
 package client;
 
+import GUI.ChatFrame;
 import data.User;
 import exception.NotFriendException;
 import exception.ServiceNotFoundException;
 import exception.UnknownUserException;
-import server.Server;
-import service.Service;
 import util.CommonUtils;
 import util.EncryptionUtils;
+import util.KeyGenerator;
 import util.message.MessageHeader;
 import util.message.MessageWrapper;
 
@@ -15,25 +15,29 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.security.auth.callback.Callback;
 import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
 /**
  * Created by mayezhou on 2017/5/15.
  */
-public class ChatRunnable implements Runnable {
+public class ChatRunnable implements Runnable, Callback {
     private Socket socket;
     private Client client;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private SecretKey sessionKey;
+    public String friendResponse;
 
     public ChatRunnable(Socket socket, Client client) {
         this.socket = socket;
@@ -58,43 +62,40 @@ public class ChatRunnable implements Runnable {
                     messageWrapper = initChat(messageUnwrapper);
                     break;
                 case "Chat":
-                    messageWrapper = chat(messageUnwrapper);
-                    break;
+                    throw new Exception("Should never arrive here!");
                 default:
                     throw new ServiceNotFoundException();
             }
+            assert messageWrapper != null;
             out.writeObject(messageWrapper.getWrappedData());
             socket.close();
-        } catch (UnknownUserException | InvalidKeyException | ServiceNotFoundException | NoSuchAlgorithmException | ClassNotFoundException | SignatureException | NotFriendException | IllegalBlockSizeException | BadPaddingException | IOException | NoSuchPaddingException | InvalidKeySpecException e) {
+        } catch (UnknownUserException | InvalidKeyException | ServiceNotFoundException | NoSuchAlgorithmException | ClassNotFoundException | SignatureException | NotFriendException | IllegalBlockSizeException | BadPaddingException | IOException | NoSuchPaddingException | InvalidKeySpecException | InterruptedException | InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private MessageWrapper processFriendRequest(MessageWrapper messageUnwrapper) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, ClassNotFoundException {
+    private MessageWrapper processFriendRequest(MessageWrapper messageUnwrapper) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, ClassNotFoundException, InvalidKeySpecException, InvocationTargetException, InterruptedException {
         String fromUser = messageUnwrapper.getHeader().get("Username");
         System.out.println("=======Friend request=======");
         System.out.println(messageUnwrapper);
-        int choice = JOptionPane.showConfirmDialog(null, "Accept add friend request from " + fromUser + "?", "Add Friend Request", JOptionPane.YES_NO_OPTION);
-        String response;
-        if (choice == JOptionPane.YES_OPTION) {
+        SwingUtilities.invokeAndWait(() -> {
+            int choice = JOptionPane.showConfirmDialog(null, "Accept user " + fromUser + "?", "To " + client.username, JOptionPane.YES_NO_OPTION);
+            friendResponse = (choice == JOptionPane.YES_OPTION? "Accept":"Reject");
+        });
+        if (this.friendResponse.equals("Accept")) {
             byte[] body = messageUnwrapper.getBody();
             User user = (User) CommonUtils.stringToObject(EncryptionUtils.decryptWithRSA(body, client.getPrivateKey()));
             Friend friend = new Friend(user.getUsername(), user.getPort(), user.getIP().getHostAddress(), user.getPublicKey());
             client.addFriend(friend);
-            response = "Accept";
-        } else {
-            response = "Reject";
         }
         MessageHeader header = new MessageHeader();
         header
                 .add("Service", "friendRequest")
-                .add("Response", response);
-        return new MessageWrapper(header, new byte[0], Server.SERVER_PUBLIC_KEY, client.getPrivateKey());
-    }
-
-    private MessageWrapper chat(MessageWrapper messageUnwrapper) {
-        //TODO: IM
-        return messageUnwrapper;
+                .add("Response", this.friendResponse);
+        PublicKey serverPublicKey = KeyGenerator.loadPublicKey("key/server.pub");
+        return new MessageWrapper(header, new byte[0], serverPublicKey, client.getPrivateKey());
     }
 
     private MessageWrapper initChat(MessageWrapper messageUnwrapper) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException {
@@ -110,6 +111,8 @@ public class ChatRunnable implements Runnable {
                     .add("Username", client.username)
                     .add("Status", "200");
             byte[] body2 = EncryptionUtils.symmetricEncrypt("Confirm", sessionKey);
+            //show dialog GUI
+            new ChatFrame(client, client.getFriend(friendName), socket, sessionKey, out, in);
             return new MessageWrapper(header, body2, client.getFriendPublicKey(friendName), client.getPrivateKey());
         } catch (IOException | ClassNotFoundException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
             throw e;
@@ -125,4 +128,5 @@ public class ChatRunnable implements Runnable {
             return null;
         }
     }
+
 }

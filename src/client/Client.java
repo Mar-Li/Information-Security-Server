@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,6 +28,7 @@ public class Client {
     public Client(String username, char[] password, KeyPair keyPair, int port) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         this.username = username;
         this.pwdToKey = password;
+        friends = new ArrayList<>();
         keyStore = KeyStore.getInstance("JKS");//default most proper in environment
         // initialize keystore
         keyStore.load(null, pwdToKey);
@@ -74,6 +76,16 @@ public class Client {
 
     public Friend getFriend(int i) {
         return friends.get(i);
+    }
+
+    public Friend getFriend(String name) throws UnknownUserException {
+        for (Friend friend :
+                friends) {
+            if (friend.name.equals(name)) {
+                return friend;
+            }
+        }
+        throw new UnknownUserException(name);
     }
 
     public void addFriend(Friend friend) {

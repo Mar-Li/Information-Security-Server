@@ -13,6 +13,7 @@ import util.message.MessageWrapper;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -58,10 +59,15 @@ public class MiddlePanel extends JPanel implements ActionListener{
     }
 
     private void refresh() {
-        data = client.getFriendList();
-        tableModel = new DefaultTableModel(data, title);
-        table.setModel(tableModel);
+        if (table == null) {
+            createTable();
+        } else {
+            data = client.getFriendList();
+            tableModel = new DefaultTableModel(data, title);
+            table.setModel(tableModel);
+        }
         this.repaint();
+        this.updateUI();
     }
 
     private void createTable() {
@@ -83,11 +89,53 @@ public class MiddlePanel extends JPanel implements ActionListener{
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 int index = table.rowAtPoint(e.getPoint());
-                frame.endPanel.setFriend(client.getFriend(index));
-                frame.endPanel.connect();
-                frame.cardLayout.next(frame.mainPanel);
+                new Thread(new ConnectIM(client.getFriend(index))).start();
             }
         });
+        this.add(table, BorderLayout.CENTER);
+    }
+
+    private class ConnectIM implements Runnable {
+        private Friend friend;
+
+        public ConnectIM(Friend friend) {
+            this.friend = friend;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Socket socket = new Socket(friend.ip, friend.port);
+                System.out.println(client.username +  " connect to " + friend.name);
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                MessageHeader header = new MessageHeader();
+                header
+                        .add("Service", "InitChat")
+                        .add("Username", client.username);
+                SecretKey sessionKey = KeyGenerator.generateSymmetricKey();
+                byte[] body = EncryptionUtils.encryptWithRSA(CommonUtils.objectToString(sessionKey), this.friend.publicKey);
+                MessageWrapper messageWrapper = new MessageWrapper(header, body, this.friend.publicKey, client.getPrivateKey());
+                out.writeObject(messageWrapper.getWrappedData());
+                //wait for response
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                byte[] received = (byte[]) in.readObject();
+                MessageWrapper messageUnwrapper = new MessageWrapper(received, this.friend.publicKey, client.getPrivateKey());
+                byte[] body2 = messageUnwrapper.getBody();
+                String m = EncryptionUtils.symmetricDecrypt(body2, sessionKey);
+                if (m.equals("Confirm")) {
+                    System.out.println("=======Begin Chatting========");
+                    new ChatFrame(client, friend, socket, sessionKey, out, in); //this socket should not be closed
+                } else {
+                    throw new Exception("Init Chat Failure");
+                }
+            } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (Exception e) {// | SignatureException | UnknownUserException
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+                //TODO: plain response
+            }
+        }
     }
 
     @Override
@@ -114,28 +162,54 @@ public class MiddlePanel extends JPanel implements ActionListener{
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             out.writeObject(request.getWrappedData());
             System.out.println("sending Friend request to server");
-
-            //get response
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-            Object object = in.readObject();
-            byte[] receivedBytes = (byte[]) object;
-            System.out.println("Get response from server");
-            MessageWrapper response = new MessageWrapper(receivedBytes, serverPublicKey, client.getPrivateKey());
-            //parse response
-            String status = response.getHeader().get("Response");
-            if (status.equals("Accept")) {
-                JOptionPane.showMessageDialog(null, targetName + " accepted your request!");
-                byte[] encryptedBody = response.getBody();
-                String decrypedBody = EncryptionUtils.decryptWithRSA(encryptedBody, client.getPrivateKey());
-                User user = (User) CommonUtils.stringToObject(decrypedBody);
-                System.out.println("Friend's IP is " + user.getIP().getHostAddress());
-                refresh();
-            } else {
-                JOptionPane.showMessageDialog(null, targetName + " rejected your request!");
-            }
-            socket.close();
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | BadPaddingException | NoSuchPaddingException | IllegalBlockSizeException | InvalidKeyException | SignatureException | UnknownUserException | ClassNotFoundException e1) {
+            //wait for response
+            new Thread(new WaitForResponse(socket, serverPublicKey, targetName, this)).start();
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | BadPaddingException | NoSuchPaddingException | IllegalBlockSizeException | InvalidKeyException e1) {
             e1.printStackTrace();
+        }
+    }
+
+    private class WaitForResponse implements Runnable {
+        private Socket socket;
+        private PublicKey serverPublicKey;
+        private String targetName;
+        private MiddlePanel middlePanel;
+
+        public WaitForResponse(Socket socket, PublicKey serverPublicKey, String targetName, MiddlePanel middlePanel) {
+            this.socket = socket;
+            this.serverPublicKey = serverPublicKey;
+            this.targetName = targetName;
+            this.middlePanel = middlePanel;
+        }
+
+        @Override
+        public void run() {
+            try {
+                //get response
+                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+                Object object = in.readObject();
+                byte[] receivedBytes = (byte[]) object;
+                System.out.println("Get response from server");
+                MessageWrapper response = new MessageWrapper(receivedBytes, serverPublicKey, client.getPrivateKey());
+                //parse response
+                String status = response.getHeader().get("Response");
+                if (status.equals("Accept")) {
+                    JOptionPane.showMessageDialog(null, targetName + " accepted your request!");
+                    byte[] encryptedBody = response.getBody();
+                    String decrypedBody = EncryptionUtils.decryptWithRSA(encryptedBody, client.getPrivateKey());
+                    User user = (User) CommonUtils.stringToObject(decrypedBody);
+                    Friend friend = new Friend(user.getUsername(), user.getPort(), user.getIP().getHostAddress(), user.getPublicKey());
+                    System.out.println("Friend's info is\n" + user);
+                    client.addFriend(friend);
+                    middlePanel.refresh();
+                } else {
+                    JOptionPane.showMessageDialog(null, targetName + " rejected your request!");
+                }
+                socket.close();
+            } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | ClassNotFoundException | BadPaddingException | SignatureException | IllegalBlockSizeException | UnknownUserException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 }
