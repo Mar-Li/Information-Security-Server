@@ -43,7 +43,7 @@ public class EndPanel extends JPanel implements ActionListener{
     private ObjectOutputStream out;
     private ObjectInputStream in;
 
-    public EndPanel(Client client, Friend friend, Socket socket, SecretKey sessionKey, ObjectOutputStream out, ObjectInputStream in) {
+    public EndPanel(Client client, Friend friend, Socket socket, SecretKey sessionKey, ObjectOutputStream out, ObjectInputStream in) throws IOException {
         this.client = client;
         this.friend = friend;
         this.socket = socket;
@@ -109,10 +109,12 @@ public class EndPanel extends JPanel implements ActionListener{
     private class ReceiveRunnable implements Runnable {
         @Override
         public void run() {
-            while (true) {
+            System.out.println("In ReceiveRunnable");
+            while (!socket.isClosed()) {
                 try {
                     byte[] receivedBytes = (byte[]) in.readObject();//block
                     MessageWrapper messageUnwrapper = new MessageWrapper(receivedBytes, friend.publicKey, client.getPrivateKey());
+                    System.out.println(messageUnwrapper);
                     String service = messageUnwrapper.getHeader().get("Service");
                     switch (service) {
                         case "Chat":

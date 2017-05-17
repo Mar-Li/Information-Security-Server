@@ -57,18 +57,19 @@ public class ChatRunnable implements Runnable, Callback {
             switch (service) {
                 case "friendRequest":
                     messageWrapper = processFriendRequest(messageUnwrapper);
+                    out.writeObject(messageWrapper.getWrappedData());
+                    socket.close();
                     break;
                 case "InitChat":
                     messageWrapper = initChat(messageUnwrapper);
+                    assert messageWrapper != null;
+                    out.writeObject(messageWrapper.getWrappedData());
                     break;
                 case "Chat":
                     throw new Exception("Should never arrive here!");
                 default:
                     throw new ServiceNotFoundException();
             }
-            assert messageWrapper != null;
-            out.writeObject(messageWrapper.getWrappedData());
-            socket.close();
         } catch (UnknownUserException | InvalidKeyException | ServiceNotFoundException | NoSuchAlgorithmException | ClassNotFoundException | SignatureException | NotFriendException | IllegalBlockSizeException | BadPaddingException | IOException | NoSuchPaddingException | InvalidKeySpecException | InterruptedException | InvocationTargetException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -111,6 +112,8 @@ public class ChatRunnable implements Runnable, Callback {
                     .add("Username", client.username)
                     .add("Status", "200");
             byte[] body2 = EncryptionUtils.symmetricEncrypt("Confirm", sessionKey);
+            System.out.println(messageUnwrapper);
+            System.out.println("=========InitChat with" + friendName + "========");
             //show dialog GUI
             new ChatFrame(client, client.getFriend(friendName), socket, sessionKey, out, in);
             return new MessageWrapper(header, body2, client.getFriendPublicKey(friendName), client.getPrivateKey());

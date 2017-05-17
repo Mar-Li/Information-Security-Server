@@ -88,6 +88,7 @@ public class MiddlePanel extends JPanel implements ActionListener{
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
+                System.out.println("Clicked!");
                 int index = table.rowAtPoint(e.getPoint());
                 new Thread(new ConnectIM(client.getFriend(index))).start();
             }
@@ -126,6 +127,7 @@ public class MiddlePanel extends JPanel implements ActionListener{
                     System.out.println("=======Begin Chatting========");
                     new ChatFrame(client, friend, socket, sessionKey, out, in); //this socket should not be closed
                 } else {
+                    JOptionPane.showMessageDialog(null, "Init Chat Failure!");
                     throw new Exception("Init Chat Failure");
                 }
             } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | ClassNotFoundException e) {

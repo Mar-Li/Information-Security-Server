@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -18,7 +19,7 @@ import java.net.Socket;
 public class ChatFrame extends JFrame {
     private EndPanel endPanel;
 
-    public ChatFrame(Client client, Friend friend, Socket socket, SecretKey sessionKey, ObjectOutputStream out, ObjectInputStream in) throws HeadlessException {
+    public ChatFrame(Client client, Friend friend, Socket socket, SecretKey sessionKey, ObjectOutputStream out, ObjectInputStream in) throws HeadlessException, IOException {
         endPanel = new EndPanel(client, friend, socket, sessionKey, out, in);
         Container container = this.getContentPane();
         container.add(endPanel);
