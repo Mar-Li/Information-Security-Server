@@ -19,9 +19,7 @@ import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -42,6 +40,7 @@ public class EndPanel extends JPanel implements ActionListener{
     private SecretKey sessionKey;
     private ObjectOutputStream out;
     private ObjectInputStream in;
+    private JFileChooser fileChooser;
 
     public EndPanel(Client client, Friend friend, Socket socket, SecretKey sessionKey, ObjectOutputStream out, ObjectInputStream in) throws IOException {
         this.client = client;
@@ -50,6 +49,7 @@ public class EndPanel extends JPanel implements ActionListener{
         this.sessionKey = sessionKey;
         this.out = out;
         this.in = in;
+        fileChooser = new JFileChooser();
         button = new JButton("SEND");
         fileBtn = new JButton("FILE");
         textField = new JTextField();
@@ -69,33 +69,48 @@ public class EndPanel extends JPanel implements ActionListener{
         panel.add(panel1);
         this.add(panel, BorderLayout.SOUTH);
         button.addActionListener(this);
-        fileBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //TODO: choose file
-            }
-        });
+        fileBtn.addActionListener(this);
         new Thread(new ReceiveRunnable()).start();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
-        MessageHeader header = new MessageHeader();
-        header
-                .add("Service", "Chat")
-                .add("Username", client.username);
-        String message = textField.getText();
-        System.out.println(message);
-        try {
-            byte[] body = EncryptionUtils.symmetricEncrypt(message, sessionKey);
-            MessageWrapper messageWrapper = new MessageWrapper(header, body, friend.publicKey, client.getPrivateKey());
-            out.writeObject(messageWrapper.getWrappedData());
-            //show in dialog
-            textArea.append(client.username + ": " + message + "\n");
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | IOException e1) {
-            e1.printStackTrace();
+        if (e.getSource() == button) {
+            MessageHeader header = new MessageHeader();
+            header
+                    .add("Service", "Chat")
+                    .add("Username", client.username);
+            String message = textField.getText();
+            System.out.println(message);
+            try {
+                byte[] body = EncryptionUtils.symmetricEncrypt(message, sessionKey);
+                MessageWrapper messageWrapper = new MessageWrapper(header, body, friend.publicKey, client.getPrivateKey());
+                out.writeObject(messageWrapper.getWrappedData());
+                //show in dialog
+                textArea.append(client.username + ": " + message + "\n");
+            } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | IOException e1) {
+                e1.printStackTrace();
+            }
+        } else if (e.getSource() == fileBtn) {
+            int v = fileChooser.showOpenDialog(EndPanel.this);
+            if (v == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                MessageHeader header = new MessageHeader();
+                header
+                        .add("Service", "File")
+                        .add("Username", client.username)
+                        .add("Filename", file.getName());
+                try {
+                    byte[] body = EncryptionUtils.encryptFile(file, sessionKey);
+                    MessageWrapper messageWrapper = new MessageWrapper(header, body, friend.publicKey, client.getPrivateKey());
+                    out.writeObject(messageWrapper.getWrappedData());
+                    textArea.append(client.username + " sending file...\n");
+                } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidKeyException e1) {
+                    e1.printStackTrace();
+                }
+            }
         }
+
     }
 
     public void close() {
@@ -116,18 +131,24 @@ public class EndPanel extends JPanel implements ActionListener{
                     MessageWrapper messageUnwrapper = new MessageWrapper(receivedBytes, friend.publicKey, client.getPrivateKey());
                     System.out.println(messageUnwrapper);
                     String service = messageUnwrapper.getHeader().get("Service");
+                    byte[] body = messageUnwrapper.getBody();
                     switch (service) {
                         case "Chat":
-                            byte[] body = messageUnwrapper.getBody();
                             String message = EncryptionUtils.symmetricDecrypt(body, sessionKey);
                             textArea.append(friend.name + ": " + message + "\n");
                             break;
                         case "File":
+                            String filename = messageUnwrapper.getHeader().get("Filename");
+                            EncryptionUtils.decryptFile(filename, body, sessionKey);
+                            textArea.append(friend.name + " received file " + filename + ".\n");
                             break;
                         default:
                             throw new ServiceNotFoundException();
                     }
-                } catch (IOException | ClassNotFoundException | NoSuchAlgorithmException | InvalidKeyException | SignatureException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | UnknownUserException | ServiceNotFoundException e) {
+                } catch (EOFException e) {
+                    break;
+                }
+                catch (IOException | ClassNotFoundException | NoSuchAlgorithmException | InvalidKeyException | SignatureException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | UnknownUserException | ServiceNotFoundException e) {
                     e.printStackTrace();
                 }
             }

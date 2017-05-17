@@ -4,16 +4,12 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
 import java.util.Arrays;
-import java.io.UnsupportedEncodingException;
-import java.io.FileInputStream;
 
 /**
  * Created by lifengshuang on 09/05/2017.
@@ -33,9 +29,8 @@ public class EncryptionUtils {
         return cipher.doFinal(text.getBytes());
     }
 
-    public static byte[] encryptFile(String filepath, Key key) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        Path path = Paths.get(filepath);
-        byte[] data = Files.readAllBytes(path);
+    public static byte[] encryptFile(File file, Key key) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        byte[] data = Files.readAllBytes(file.toPath());
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);
         return cipher.doFinal(data);
