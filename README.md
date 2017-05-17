@@ -102,6 +102,10 @@ Thus, we ensured our encryption efficiency.
 
 ## Implementation details
 
+### GUI code
+
+Implemented by Java Swing. See code under src/GUI.
+
 ### Utility code
 
 - util/KeyGenerator.java
