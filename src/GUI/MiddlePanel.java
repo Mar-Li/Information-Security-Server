@@ -130,14 +130,9 @@ public class MiddlePanel extends JPanel implements ActionListener{
                     new ChatFrame(client, friend, socket, sessionKey, out, in); //this socket should not be closed
                 } else {
                     JOptionPane.showMessageDialog(null, "Init Chat Failure!");
-                    throw new Exception("Init Chat Failure");
                 }
-            } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | ClassNotFoundException e) {
+            } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | ClassNotFoundException | SignatureException | UnknownUserException e) {
                 e.printStackTrace();
-            } catch (Exception e) {// | SignatureException | UnknownUserException
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-                //TODO: plain response
             }
         }
     }
