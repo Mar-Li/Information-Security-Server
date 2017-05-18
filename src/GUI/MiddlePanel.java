@@ -201,7 +201,10 @@ public class MiddlePanel extends JPanel implements ActionListener{
                     System.out.println("Friend's info is\n" + user);
                     client.addFriend(friend);
                     middlePanel.refresh();
-                } else {
+                } else if(status.equals("Error")) {
+                    JOptionPane.showMessageDialog(null, response.getHeader().get("Error"));
+                }
+                else {
                     JOptionPane.showMessageDialog(null, targetName + " rejected your request!");
                 }
                 socket.close();

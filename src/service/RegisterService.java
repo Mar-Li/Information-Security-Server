@@ -61,7 +61,6 @@ public class RegisterService implements Service {
                     .add("Status", "200");
             return (new MessageWrapper(header, responseBody, publicKey, Server.SERVER_PRIVATE_KEY)).getWrappedData();
         } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(null, "Username is already used!");
             MessageHeader header = new MessageHeader();
             header
                     .add("Service", "register")
