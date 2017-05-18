@@ -1,6 +1,7 @@
 package client;
 
 import GUI.ChatFrame;
+import GUI.MiddlePanel;
 import data.User;
 import exception.NotFriendException;
 import exception.ServiceNotFoundException;
@@ -38,11 +39,13 @@ public class ChatRunnable implements Runnable, Callback {
     private ObjectOutputStream out;
     private SecretKey sessionKey;
     public String friendResponse;
+    private MiddlePanel panel;
 
-    public ChatRunnable(Socket socket, Client client) {
+    public ChatRunnable(Socket socket, Client client, MiddlePanel panel) {
         this.socket = socket;
         this.client = client;
         sessionKey = null;
+        this.panel = panel;
     }
 
     @Override
@@ -90,6 +93,7 @@ public class ChatRunnable implements Runnable, Callback {
             User user = (User) CommonUtils.stringToObject(EncryptionUtils.decryptWithRSA(body, client.getPrivateKey()));
             Friend friend = new Friend(user.getUsername(), user.getPort(), user.getIP().getHostAddress(), user.getPublicKey());
             client.addFriend(friend);
+            panel.refresh();
         }
         MessageHeader header = new MessageHeader();
         header

@@ -1,5 +1,6 @@
 package client;
 
+import GUI.MyFrame;
 import exception.UnknownUserException;
 
 import javax.crypto.SecretKey;
@@ -25,7 +26,7 @@ public class Client {
     private ServerSocket listenSocket;
     private int port;
 
-    public Client(String username, char[] password, KeyPair keyPair, int port) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    public Client(String username, char[] password, KeyPair keyPair, int port, MyFrame frame) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         this.username = username;
         this.pwdToKey = password;
         friends = new ArrayList<>();
@@ -37,7 +38,7 @@ public class Client {
         this.port = port;
         listenSocket = new ServerSocket(port);
         System.out.println("Start Client socket " + username + " in port " + port);
-        new Thread(new ClientListenRunnable(listenSocket, this)).start();
+        new Thread(new ClientListenRunnable(listenSocket, this, frame.middlePanel)).start();
         portCount++;
     }
 

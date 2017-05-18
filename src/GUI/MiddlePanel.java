@@ -60,7 +60,7 @@ public class MiddlePanel extends JPanel implements ActionListener{
         this.client = client;
     }
 
-    private void refresh() {
+    public void refresh() {
         if (table == null) {
             createTable();
         } else {
