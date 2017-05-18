@@ -1,7 +1,5 @@
 package util;
 
-import com.sun.deploy.util.SystemUtils;
-
 import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileOutputStream;

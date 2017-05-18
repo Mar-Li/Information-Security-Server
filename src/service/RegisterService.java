@@ -12,7 +12,6 @@ import util.message.MessageWrapper;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.*;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;

@@ -1,6 +1,5 @@
 package test;
 
-import com.sun.deploy.util.SystemUtils;
 import exception.UnknownUserException;
 import util.CommonUtils;
 import util.EncryptionUtils;
