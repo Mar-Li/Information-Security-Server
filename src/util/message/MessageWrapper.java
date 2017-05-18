@@ -119,7 +119,7 @@ public class MessageWrapper {
             String username = this.header.get("Username");
             if (username == null) {
                 throw new UnknownUserException(null);
-            } else {
+            } else if(!header.get("Service").equals("register")) {
                 PublicKey key = UserData.getPublicKey(username);
                 if (key != null) {
                     byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);

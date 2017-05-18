@@ -67,8 +67,19 @@ public class RequestHandler implements Runnable {
             if (service == null) {
                 throw new ServiceNotFoundException();
             }
-            if (!service.equals("register") && UserData.getUser(username) == null) {
-                throw new UnknownUserException(username);
+            if (!service.equals("register")) {
+                if (UserData.getUser(username) == null) {
+                    throw new UnknownUserException(username);
+                } else {
+                    this.user = UserData.getUser(username);
+                    if (this.user == null) {
+                        throw new UnknownUserException(username);
+                    }
+                }
+            }
+            String friend = request.getHeader().get("Friend");
+            if (friend != null && UserData.getUser(friend) == null) {
+                throw new UnknownUserException(friend);
             }
 
             System.out.println("Service: " + service);
@@ -76,7 +87,6 @@ public class RequestHandler implements Runnable {
             byte[] response = handleRequest(request, service);
 
             if (response != null) {
-                this.user = UserData.getUser(username);
                 UserData.setIP(username, socket.getInetAddress());
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                 outputStream.writeObject(response);
@@ -86,7 +96,7 @@ public class RequestHandler implements Runnable {
                 throw new ServiceNotFoundException();
             }
         } catch (UnknownUserException e) {
-            returnErrorMessage("User " + e.getUsername() + " is not found and the request is not a register request", e);
+            returnErrorMessage("User " + e.getUsername() + " is not found.", e);
         } catch (SignatureException e) {
             returnErrorMessage("The signature validation failed.", e);
         } catch (ServiceNotFoundException e) {
@@ -104,6 +114,7 @@ public class RequestHandler implements Runnable {
                 MessageHeader header = new MessageHeader();
                 header
                         .add("Error", error)
+                        .add("Status", "Error")
                         .add("ErrorType", e.getClass().getName());
                 MessageWrapper response = new MessageWrapper(header, new byte[0], user.getPublicKey(), Server.SERVER_PRIVATE_KEY);
                 outputStream.writeObject(response.getWrappedData());

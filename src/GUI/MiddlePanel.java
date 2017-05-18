@@ -192,7 +192,10 @@ public class MiddlePanel extends JPanel implements ActionListener{
                 MessageWrapper response = new MessageWrapper(receivedBytes, serverPublicKey, client.getPrivateKey());
                 //parse response
                 String status = response.getHeader().get("Response");
-                if (status.equals("Accept")) {
+                if (status == null) {
+                    JOptionPane.showMessageDialog(null, response.getHeader().get("Error"));
+                }
+                else if (status.equals("Accept")) {
                     JOptionPane.showMessageDialog(null, targetName + " accepted your request!");
                     byte[] encryptedBody = response.getBody();
                     String decrypedBody = EncryptionUtils.decryptWithRSA(encryptedBody, client.getPrivateKey());
@@ -201,10 +204,7 @@ public class MiddlePanel extends JPanel implements ActionListener{
                     System.out.println("Friend's info is\n" + user);
                     client.addFriend(friend);
                     middlePanel.refresh();
-                } else if(status.equals("Error")) {
-                    JOptionPane.showMessageDialog(null, response.getHeader().get("Error"));
-                }
-                else {
+                } else {
                     JOptionPane.showMessageDialog(null, targetName + " rejected your request!");
                 }
                 socket.close();

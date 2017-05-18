@@ -16,6 +16,9 @@ public class UserData {
     private static Map<String, User> userData = new HashMap<>();
 
     public static void addUser(String username) {
+        if (userData.get(username) != null) {
+            throw new IllegalArgumentException();
+        }
         userData.put(username, new User(username));
     }
 

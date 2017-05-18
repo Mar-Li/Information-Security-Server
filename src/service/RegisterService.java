@@ -66,8 +66,7 @@ public class RegisterService implements Service {
                     .add("Service", "register")
                     .add("Status", "Error")
                     .add("ErrorType", "Repetitive username");
-            byte[] responseBody = EncryptionUtils.encryptWithRSA("", publicKey);
-            return (new MessageWrapper(header, responseBody, publicKey, Server.SERVER_PRIVATE_KEY)).getWrappedData();
+            return (new MessageWrapper(header, new byte[0], publicKey, Server.SERVER_PRIVATE_KEY)).getWrappedData();
         }
 
     }
