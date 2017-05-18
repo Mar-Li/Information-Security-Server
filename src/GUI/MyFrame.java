@@ -14,7 +14,7 @@ public class MyFrame extends JFrame{
     public StartPanel startPanel;
     public MiddlePanel middlePanel;
 
-    public MyFrame() {
+    public MyFrame(int x, int y) {
         cardLayout = new CardLayout();
         mainPanel = new JPanel();
         startPanel = new StartPanel(this);
@@ -26,15 +26,15 @@ public class MyFrame extends JFrame{
         container.add(mainPanel);
         this.setTitle("IM");
         this.setSize(325, 550);
-        this.setLocationRelativeTo(null);
+        this.setLocation(x, y);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
         this.setResizable(true);
     }
 
     public static void main(String[] args) {
-        new Thread(() -> new MyFrame()).start();
-        new Thread(() -> new MyFrame()).start();
+        new Thread(() -> new MyFrame(326, 80)).start();
+        new Thread(() -> new MyFrame(715, 80)).start();
     }
 
     public void setClient(Client client) {
