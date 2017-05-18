@@ -4,6 +4,7 @@ import client.Client;
 import client.Friend;
 import exception.ServiceNotFoundException;
 import exception.UnknownUserException;
+import util.CommonUtils;
 import util.EncryptionUtils;
 import util.message.MessageHeader;
 import util.message.MessageWrapper;
@@ -136,8 +137,9 @@ public class EndPanel extends JPanel implements ActionListener{
                             break;
                         case "File":
                             String filename = messageUnwrapper.getHeader().get("Filename");
+                            filename = CommonUtils.byteArrayToString(filename.getBytes());
                             EncryptionUtils.decryptFile(filename, body, sessionKey);
-                            textArea.append(friend.name + " received file " + filename + ".\n");
+                            textArea.append(client.username + " received file " + filename + ".\n");
                             break;
                         default:
                             throw new ServiceNotFoundException();

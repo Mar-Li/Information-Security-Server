@@ -36,7 +36,7 @@ public class MessageWrapper {
         System.arraycopy(lengthBlock, 0, dataWithoutSignature, 0, lengthBlock.length);
         System.arraycopy(encryptedHeader, 0, dataWithoutSignature, lengthBlock.length, encryptedHeader.length);
         System.arraycopy(body, 0, dataWithoutSignature, lengthBlock.length + encryptedHeader.length, body.length);
-        byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+        byte[] hash = MessageDigest.getInstance("SHA-1").digest(dataWithoutSignature);
         byte[] signature = EncryptionUtils.encryptWithRSA(CommonUtils.byteArrayToString(hash), privateKey);
         wrappedData = new byte[dataWithoutSignature.length + EncryptionUtils.BYTE_BLOCK_SIZE];
         System.arraycopy(dataWithoutSignature, 0, wrappedData, 0, dataWithoutSignature.length);
@@ -69,7 +69,7 @@ public class MessageWrapper {
         }
         if (key != null) {
             byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
-            byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+            byte[] hash = MessageDigest.getInstance("SHA-1").digest(dataWithoutSignature);
             byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, key));
             if (!Arrays.equals(hash, hashFromSignature)) {
                 throw new SignatureException();
@@ -90,7 +90,7 @@ public class MessageWrapper {
         this.header = MessageHeader.parse(EncryptionUtils.symmetricDecrypt(encryptedHeader, sessionKey));
         this.body = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength, dataWithoutSignature.length);
         byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
-        byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+        byte[] hash = MessageDigest.getInstance("SHA-1").digest(dataWithoutSignature);
         byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, publicKey));
         if (!Arrays.equals(hash, hashFromSignature)) {
             throw new SignatureException();
@@ -104,7 +104,7 @@ public class MessageWrapper {
         // For client
         if (publicKey != null) {
             byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
-            byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+            byte[] hash = MessageDigest.getInstance("SHA-1").digest(dataWithoutSignature);
             byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, publicKey));
             if (!Arrays.equals(hash, hashFromSignature)) {
                 throw new SignatureException();
@@ -123,7 +123,7 @@ public class MessageWrapper {
                 PublicKey key = UserData.getPublicKey(username);
                 if (key != null) {
                     byte[] signatureBlock = Arrays.copyOfRange(wrappedData, dataWithoutSignature.length, wrappedData.length);
-                    byte[] hash = MessageDigest.getInstance("MD5").digest(dataWithoutSignature);
+                    byte[] hash = MessageDigest.getInstance("SHA-1").digest(dataWithoutSignature);
                     byte[] hashFromSignature = CommonUtils.stringToByteArray(EncryptionUtils.decryptWithRSA(signatureBlock, key));
                     if (!Arrays.equals(hash, hashFromSignature)) {
                         throw new SignatureException();
