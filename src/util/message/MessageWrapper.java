@@ -23,7 +23,6 @@ import java.util.Arrays;
  * Header and body are both encrypted message.
  */
 public class MessageWrapper {
-
     private MessageHeader header;
     private byte[] body;
     private byte[] wrappedData;
@@ -81,6 +80,7 @@ public class MessageWrapper {
         this.body = Arrays.copyOfRange(dataWithoutSignature, EncryptionUtils.BYTE_BLOCK_SIZE + headerLength, dataWithoutSignature.length);
     }
 
+    //For Client listening socket
     public MessageWrapper(byte[] wrappedData, PublicKey publicKey, SecretKey sessionKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException {
         this.wrappedData = wrappedData;
         byte[] dataWithoutSignature = Arrays.copyOfRange(wrappedData, 0, wrappedData.length - EncryptionUtils.BYTE_BLOCK_SIZE);
@@ -97,6 +97,7 @@ public class MessageWrapper {
         }
     }
 
+    //For Server & Client
     public MessageWrapper(byte[] wrappedData, PublicKey publicKey, PrivateKey privateKey) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, SignatureException, UnknownUserException {
         this.wrappedData = wrappedData;
         byte[] dataWithoutSignature = Arrays.copyOfRange(wrappedData, 0, wrappedData.length - EncryptionUtils.BYTE_BLOCK_SIZE);

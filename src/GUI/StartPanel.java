@@ -48,7 +48,6 @@ public class StartPanel extends JPanel {
                 //get input
                 String username = usernameComp.getText();
                 char[] password = passwordField.getPassword();
-
                 try {
                     //wrap message
                     KeyPair initKeyPair = KeyGenerator.generateRSAKey();
@@ -95,9 +94,11 @@ public class StartPanel extends JPanel {
                         MessageWrapper mw = new MessageWrapper(header, body2, serverPublicKey, client.getPrivateKey());
                         out.writeObject(mw.getWrappedData());
                         System.out.println("send listening port" + client.getPort() + " to server");
+                        socket.close();
+                        frame.cardLayout.next(frame.mainPanel);
+                    } else if (status.equals("Error")) {
+                        JOptionPane.showMessageDialog(null, response.getHeader().get("ErrorType"));
                     }
-                    socket.close();
-                    frame.cardLayout.next(frame.mainPanel);
                 } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | BadPaddingException | NoSuchPaddingException | IllegalBlockSizeException | InvalidKeyException | CertificateException | SignatureException | UnknownUserException | KeyStoreException | ClassNotFoundException e1) {
                     e1.printStackTrace();
                 }

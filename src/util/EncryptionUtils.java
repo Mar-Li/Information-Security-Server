@@ -21,10 +21,6 @@ public class EncryptionUtils {
     public final static int STRING_BLOCK_SIZE = 245;
     public final static int BYTE_BLOCK_SIZE = 256;
 
-    public static void checkSignature() {
-
-    }
-
     public static byte[] symmetricEncrypt(String text, Key key) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);

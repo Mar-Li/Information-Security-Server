@@ -130,14 +130,9 @@ public class MiddlePanel extends JPanel implements ActionListener{
                     new ChatFrame(client, friend, socket, sessionKey, out, in); //this socket should not be closed
                 } else {
                     JOptionPane.showMessageDialog(null, "Init Chat Failure!");
-                    throw new Exception("Init Chat Failure");
                 }
-            } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | ClassNotFoundException e) {
+            } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | ClassNotFoundException | SignatureException | UnknownUserException e) {
                 e.printStackTrace();
-            } catch (Exception e) {// | SignatureException | UnknownUserException
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-                //TODO: plain response
             }
         }
     }
@@ -206,7 +201,10 @@ public class MiddlePanel extends JPanel implements ActionListener{
                     System.out.println("Friend's info is\n" + user);
                     client.addFriend(friend);
                     middlePanel.refresh();
-                } else {
+                } else if(status.equals("Error")) {
+                    JOptionPane.showMessageDialog(null, response.getHeader().get("Error"));
+                }
+                else {
                     JOptionPane.showMessageDialog(null, targetName + " rejected your request!");
                 }
                 socket.close();
