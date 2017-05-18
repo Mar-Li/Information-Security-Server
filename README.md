@@ -1,3 +1,24 @@
+# Manual
+
+### Pre-requirement
+
+1. Update your jre to latest version 1.8.x, for we use Java GUI and swing library is different from previous versions.
+2. Download [Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
+   Extract the jar files from the zip and save them in _${JAVA_HOME}/jre/lib/security/_, it will cover original files. **This is critical, for default Java Cryptography policy only support 128-bit AES key.** While in our project, 256-bit session key in used for security concern. **Without this step, you will get a _java.security.InvalidKeyException_**.
+3. If your OS is Windows, you need to modify path format marked by _TODO_.
+4. The recommend IDE is _IntelliJ IDEA_ and _Eclipse_.
+
+
+### Run the program
+
+1. Run _src/server/Server.java_ **first**, default port is **2333**, and you can change it in the java file.
+2. Run _src/client/Client.java_ and two threads will be run, then you should create 2 clients in the pop frames. Our default client port is **3000** & **3001**, it is not suggested to modify it :)
+3. Register two clients with **different usernames** separately, the password is optional.
+4. After two clients are registered successfully, you can befriend B with A and send message or file between each other.  
+
+
+
+
 # Information Security Project Document
 
 2017.5
