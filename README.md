@@ -47,7 +47,7 @@ The messages are encrypted by AES. Some overheads encrypted by RSA are added to 
 
 **All the messages** in our project are fully encrypted along with a signature in the following format:
 
- ![Screen Shot 2017-05-17 at 9.29.25 PM](/Users/lifengshuang/Desktop/Screen Shot 2017-05-17 at 9.29.25 PM.png)
+ ![Screen Shot 2017-05-17 at 9.29.25 PM](https://cloud.githubusercontent.com/assets/6532225/26182030/8089c370-3ba7-11e7-903d-bf2ea96f968c.png)
 
 - Header length:
   - Record the length of the header. 
