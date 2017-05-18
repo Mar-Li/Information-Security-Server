@@ -1,5 +1,7 @@
 package util;
 
+import com.sun.deploy.util.SystemUtils;
+
 import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -67,6 +69,9 @@ public class KeyGenerator {
 //    }
 
     public static PublicKey loadPublicKey(String publicKeyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            publicKeyPath = publicKeyPath.replace("/", "\\");
+        }
         byte[] keyBytes = Files.readAllBytes(new File(publicKeyPath).toPath());
         X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
@@ -74,6 +79,9 @@ public class KeyGenerator {
     }
 
     private static Key loadSecretKey(String algorithm, String keyPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            keyPath = keyPath.replace("/", "\\");
+        }
         byte[] keyBytes = Files.readAllBytes(new File(keyPath).toPath());
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance(algorithm);

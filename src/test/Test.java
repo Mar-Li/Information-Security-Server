@@ -1,5 +1,6 @@
 package test;
 
+import com.sun.deploy.util.SystemUtils;
 import exception.UnknownUserException;
 import util.CommonUtils;
 import util.EncryptionUtils;
@@ -25,10 +26,11 @@ import static java.nio.charset.StandardCharsets.ISO_8859_1;
 
 public class Test {
     public static void main(String[] args) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, SignatureException, UnknownUserException {
-        testMessageWrapper();
-//        System.out.println(testMD5().length);
-//        testByteStringConversion();
-//        testUserData();
+        String path = "key/s.sad";
+        if (!System.getProperty("os.name").startsWith("Windows")) {
+            path = path.replace("/", "\\");
+            System.out.println(path);
+        }
     }
 
 

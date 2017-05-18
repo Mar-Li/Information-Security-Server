@@ -126,12 +126,6 @@ public class ChatRunnable implements Runnable, Callback {
         } catch (Exception e) { // SignatureException | UnknownUserException | NotFriendException
             System.out.println(e.getMessage());
             e.printStackTrace();
-            MessageHeader header = new MessageHeader();
-            header
-                    .add("Status", "404")
-                    .add("Service", "ConfirmChat");
-            //TODO: send plain text
-//            MessageWrapper messageWrapper = new MessageWrapper();
             return null;
         }
     }
